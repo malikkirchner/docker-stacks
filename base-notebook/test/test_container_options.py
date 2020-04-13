@@ -47,7 +47,7 @@ def test_uid_change(container):
     )
     # usermod is slow so give it some time
     c.wait(timeout=120)
-    assert 'uid=1010(jovyan)' in c.logs(stdout=True).decode('utf-8')
+    assert 'uid=1010(jupyter)' in c.logs(stdout=True).decode('utf-8')
 
 
 def test_gid_change(container):
@@ -60,8 +60,8 @@ def test_gid_change(container):
     )
     c.wait(timeout=10)
     logs = c.logs(stdout=True).decode('utf-8')
-    assert 'gid=110(jovyan)' in logs
-    assert 'groups=110(jovyan),100(users)' in logs
+    assert 'gid=110(jupyter)' in logs
+    assert 'groups=110(jupyter),100(users)' in logs
 
 
 def test_nb_user_change(container):
@@ -75,21 +75,21 @@ def test_nb_user_change(container):
         working_dir=f"/home/{nb_user}",
         command=['start.sh', 'bash', '-c', 'sleep infinity']
     )
-    
-    # Give the chown time to complete. Use sleep, not wait, because the 
+
+    # Give the chown time to complete. Use sleep, not wait, because the
     # container sleeps forever.
     time.sleep(10)
     LOGGER.info(f"Checking if the user is changed to {nb_user} by the start script ...")
     output = running_container.logs(stdout=True).decode("utf-8")
-    assert f"Set username to: {nb_user}" in output, f"User is not changed to {nb_user}" 
-    
+    assert f"Set username to: {nb_user}" in output, f"User is not changed to {nb_user}"
+
     LOGGER.info(f"Checking {nb_user} id ...")
     command = "id"
     expected_output = f"uid=1000({nb_user}) gid=100(users) groups=100(users)"
     cmd = running_container.exec_run(command, user=nb_user)
     output = cmd.output.decode("utf-8").strip("\n")
     assert output == expected_output, f"Bad user {output}, expected {expected_output}"
-    
+
     LOGGER.info(f"Checking if {nb_user} owns his home folder ...")
     command = f'stat -c "%U %G" /home/{nb_user}/'
     expected_output = f"{nb_user} users"
@@ -116,7 +116,7 @@ def test_chown_extra(container):
 
 
 def test_chown_home(container):
-    """Container should change the NB_USER home directory owner and 
+    """Container should change the NB_USER home directory owner and
     group to the current value of NB_UID and NB_GID."""
     c = container.run(
         tty=True,
@@ -124,10 +124,10 @@ def test_chown_home(container):
         environment=['CHOWN_HOME=yes',
                      'CHOWN_HOME_OPTS=-R',
         ],
-        command=['start.sh', 'bash', '-c', 'chown root:root /home/jovyan && ls -alsh /home']
+        command=['start.sh', 'bash', '-c', 'chown root:root /home/jupyter && ls -alsh /home']
     )
     c.wait(timeout=120)
-    assert "Changing ownership of /home/jovyan to 1000:100 with options '-R'" in c.logs(stdout=True).decode('utf-8')
+    assert "Changing ownership of /home/jupyter to 1000:100 with options '-R'" in c.logs(stdout=True).decode('utf-8')
 
 
 def test_sudo(container):

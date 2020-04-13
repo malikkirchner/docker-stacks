@@ -23,6 +23,9 @@ USER root
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
  && apt-get install -yq --no-install-recommends \
+    build-essential \
+    git \
+    cmake \
     wget \
     bzip2 \
     ca-certificates \
@@ -54,7 +57,7 @@ RUN chmod a+rx /usr/local/bin/fix-permissions
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
 RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc
 
-# Create NB_USER wtih name jovyan user with UID=1000 and in the 'users' group
+# Create NB_USER wtih name jupyter user with UID=1000 and in the 'users' group
 # and make sure these dirs are writable by the `users` group.
 RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     sed -i.bak -e 's/^%admin/#%admin/' /etc/sudoers && \
@@ -74,7 +77,7 @@ ARG PYTHON_VERSION=default
 RUN mkdir /home/$NB_USER/work && \
     fix-permissions /home/$NB_USER
 
-# Install conda as jovyan and check the md5 sum provided on the download site
+# Install conda as jupyter and check the md5 sum provided on the download site
 ENV MINICONDA_VERSION=4.8.3 \
     MINICONDA_MD5=d63adf39f2c220950a063e0529d4ff74 \
     CONDA_VERSION=4.8.3
@@ -138,7 +141,7 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 USER root
 RUN fix-permissions /etc/jupyter/
 
-# Switch back to jovyan to avoid accidental container runs as root
+# Switch back to jupyter to avoid accidental container runs as root
 USER $NB_UID
 
 WORKDIR $HOME
